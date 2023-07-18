@@ -1,0 +1,702 @@
+#include <GL/glut.h>
+#include <cmath>
+#include <windows.h>
+#include<stdio.h>
+#include<iostream>
+#include<random>
+#include<string>
+
+int score = 0;
+bool batsman_move = true;
+#define pi 3.14159265358979323846
+float bowlerx = -0.025;
+float bowlery = -0.37;
+float batsman1x = -0.025;
+float batsman1y = 0.15;
+float batsman2x = 0.03;
+float batsman2y = -0.15;
+float ballx = -0.025;
+float bally = -0.15;
+bool isbowling = false;
+float ballspeed = 0.01;
+bool disp_catch = true;
+bool ball_hit_with_bat = false;
+bool bowlermove = false;
+float ball_direc_after_hit[2] = { 0.00245f,-0.015f };
+bool score_incremented = false;
+int state_manager = 0;//1-CAtch 2-Six
+
+void restart() {
+
+    bowlerx = -0.025;
+    bowlery = -0.37;
+    batsman1x = -0.025;
+    batsman1y = 0.15;
+    batsman2x = 0.03;
+    batsman2y = -0.15;
+    ballx = -0.025;
+    bally = -0.15;
+    isbowling = false;
+    ballspeed = 0.01;
+    disp_catch = true;
+    ball_hit_with_bat = false;
+    bowlermove = false;
+    bool score_incremented = false;
+}
+void restart1() {
+    score = 0;
+    bowlerx = -0.025;
+    bowlery = -0.37;
+    batsman1x = -0.025;
+    batsman1y = 0.15;
+    batsman2x = 0.03;
+    batsman2y = -0.15;
+    ballx = -0.025;
+    bally = -0.15;
+    isbowling = false;
+    ballspeed = 0.01;
+    disp_catch = true;
+    ball_hit_with_bat = false;
+    bowlermove = false;
+    bool score_incremented = false;
+}
+
+void stand_lines(float sx, float sy, float gx, float gy) {
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2f(sx, sy);
+    glVertex2f(gx, gy);
+    glEnd();
+}
+
+void drawScoreboard() {
+    // Draw the scoreboard
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(-1.1, 0.95);
+    glVertex2f(-1.1, 0.77);
+    glVertex2f(-0.7, 0.77);
+    glVertex2f(-0.7, 0.95);
+    glEnd();
+
+    glColor3f(0.0, 0.0, 0.0);
+    glRasterPos2f(-0.98f, 0.85f);
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'S');
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'C');
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'O');
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'R');
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'E');
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ':');
+
+    // score value
+    glRasterPos2f(-0.78f, 0.85f);
+    std::string scoreStr = std::to_string(score);
+    for (char c : scoreStr) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+    }
+}
+
+void display()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawScoreboard();
+    glColor3f(0.0, 0.3, 0.0);    //   cricket ground
+    glBegin(GL_POLYGON);
+    int segments = 100;
+    float angle;
+    for (int i = 0; i < segments; ++i) {
+        angle = 2.0 * pi * i / segments;
+        float x = cos(angle) * 0.7;
+        float y = sin(angle) * 0.7;
+        glVertex2f(x, y);
+    }
+    glEnd();
+    glColor3f(0.0, 0.0, 0.0);    //seats
+    glBegin(GL_LINE_LOOP);
+    float stand1 = 8;
+    float standradius1 = 1.0;
+    for (int i = 0; i < stand1; ++i) {
+        angle = 2.0 * pi * i / stand1;
+        float x = cos(angle) * standradius1;
+        float y = sin(angle) * standradius1;
+        glVertex2f(x, y);
+    }
+
+    glEnd();
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float stand2 = 8;
+    float standradius2 = 0.95;
+    for (int i = 0; i < stand2; ++i) {
+        angle = 2.0 * pi * i / stand2;
+        float x = cos(angle) * standradius2;
+        float y = sin(angle) * standradius2;
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float stand3 = 8;
+    float standradius3 = 0.9;
+    for (int i = 0; i < stand3; ++i) {
+        angle = 2.0 * pi * i / stand3;
+        float x = cos(angle) * standradius3;
+        float y = sin(angle) * standradius3;
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float stand4 = 8;
+    float standradius4 = 0.85;
+    for (int i = 0; i < stand1; ++i) {
+        angle = 2.0 * pi * i / stand4;
+        float x = cos(angle) * standradius4;
+        float y = sin(angle) * standradius4;
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float stand5 = 8;
+    float standradius5 = 0.80;
+    for (int i = 0; i < stand5; ++i) {
+        angle = 2.0 * pi * i / stand5;
+        float x = cos(angle) * standradius5;
+        float y = sin(angle) * standradius5;
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glColor3f(1.0, 0.0, 0.0);    //seats
+    glBegin(GL_LINE_LOOP);
+    float aud1 = 8;
+    float audradius1 = 0.78;
+    for (int i = 0; i < aud1; ++i) {
+        angle = 2 * pi * i / aud1;
+        float x = cos(angle) * audradius1;
+        float y = sin(angle) * audradius1;
+        glVertex2f(x, y);
+    }
+    glEnd();
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float aud2 = 8;
+    float audradius2 = 0.83;
+    for (int i = 0; i < aud2; ++i) {
+        angle = 2 * pi * i / aud2;
+        float x = cos(angle) * audradius2;
+        float y = sin(angle) * audradius2;
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float aud3 = 8;
+    float audradius3 = 0.88;
+    for (int i = 0; i < aud3; ++i) {
+        angle = 2 * pi * i / aud3;
+        float x = cos(angle) * audradius3;
+        float y = sin(angle) * audradius3;
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float aud4 = 8;
+    float audradius4 = 0.93;
+    for (int i = 0; i < aud4; ++i) {
+        angle = 2 * pi * i / aud4;
+        float x = cos(angle) * audradius4;
+        float y = sin(angle) * audradius4;
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float aud5 = 8;
+    float audradius5 = 0.98;
+    for (int i = 0; i < aud5; ++i) {
+        angle = 2 * pi * i / aud5;
+        float x = cos(angle) * audradius5;
+        float y = sin(angle) * audradius5;
+        glVertex2f(x, y);
+    }
+    glEnd();
+    glColor3f(1.0, 1.0, 0.0);    //aduience
+    glBegin(GL_LINE_LOOP);
+    float st1 = 8;
+    float st11 = 0.79;
+    for (int i = 0; i < st1; ++i) {
+        angle = 2 * pi * i / st1;
+        float x = cos(angle) * st11;
+        float y = sin(angle) * st11;
+        glVertex2f(x, y);
+    }
+    glEnd();
+    glColor3f(1.0, 1.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float st2 = 8;
+    float st22 = 0.82;
+    for (int i = 0; i < st2; ++i) {
+        angle = 2 * pi * i / st2;
+        float x = cos(angle) * st22;
+        float y = sin(angle) * st22;
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glColor3f(1.0, 1.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float st3 = 8;
+    float st33 = 0.89;
+    for (int i = 0; i < st3; ++i) {
+        angle = 2 * pi * i / st3;
+        float x = cos(angle) * st33;
+        float y = sin(angle) * st33;
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glColor3f(1.0, 1.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float st4 = 8;
+    float st44 = 0.92;
+    for (int i = 0; i < st4; ++i) {
+        angle = 2 * pi * i / st4;
+        float x = cos(angle) * st44;
+        float y = sin(angle) * st44;
+        glVertex2f(x, y);
+    }
+    glEnd();
+
+    glColor3f(1.0, 1.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    float st5 = 8;
+    float st55 = 0.99;
+    for (int i = 0; i < st5; ++i) {
+        angle = 2 * pi * i / st5;
+        float x = cos(angle) * st55;
+        float y = sin(angle) * st55;
+        glVertex2f(x, y);
+    }
+    glEnd();
+    glColor3f(1.0, 0.0, 0.0);    //outer boundary line
+    glBegin(GL_LINE_LOOP);
+    float boundaryradius = 0.7;
+    for (int i = 0; i < segments; ++i) {
+        angle = 2.0 * pi * i / segments;
+        float x = cos(angle) * boundaryradius;
+        float y = sin(angle) * boundaryradius;
+        glVertex2f(x, y);
+    }
+    glEnd();
+    stand_lines(0.0, 1.0, 0.0, 0.7);
+    stand_lines(0.0, -1.0, 0.0, -0.7);
+    stand_lines(-0.7, 0.0, -1.0, 0.0);
+    stand_lines(0.7, 0.0, 1.0, 0.0);
+    stand_lines(0.7, 0.7, 0.5, 0.5);
+    stand_lines(0.7, -0.7, 0.5, -0.5);
+    stand_lines(-0.7, 0.7, -0.5, 0.5);
+    stand_lines(-0.7, -0.7, -0.5, -0.5);
+    glColor3f(1.0, 1.0, 1.0);    //  30-yard circle
+    glBegin(GL_LINE_LOOP);
+    float circleradius = 0.4;
+    for (int i = 0; i < segments; ++i) {
+        angle = 2.0 * pi * i / segments;
+        float x = cos(angle) * circleradius;
+        float y = sin(angle) * circleradius;
+        glVertex2f(x, y);
+    }
+    glEnd();
+    glColor3f(1.0, 0.90, 0.85); //  pitch
+    glBegin(GL_POLYGON);
+    glVertex2f(-0.1, -0.2);
+    glVertex2f(0.1, -0.2);
+    glVertex2f(0.1, 0.2);
+    glVertex2f(-0.1, 0.2);
+    glEnd();
+    glColor3f(1.0, 1.0, 1.0);//  fielders
+    glPointSize(6.0);
+    glBegin(GL_POINTS);
+    float fielderradius = 0.6;
+    for (int i = 0; i < 5; ++i) {
+        angle = 2.0 * pi * i / 5;
+        float x = cos(angle) * fielderradius;
+        float y = sin(angle) * fielderradius;
+        glVertex2f(x, y);
+    }
+    glEnd();
+    glColor3f(1.0, 1.0, 1.0);
+    glPointSize(6.0);
+    glBegin(GL_POINTS);
+    float fielderradius1 = 0.3;
+    for (int i = 0; i < 3; ++i) {
+        angle = 2.0 * pi * i / 3;
+        float x = cos(angle) * fielderradius1;
+        float y = sin(angle) * fielderradius1;
+        glVertex2f(x, y);
+    }
+    glEnd();
+    glColor3f(1.0, 1.0, 1.0);
+    glPointSize(6.0);
+    glBegin(GL_POINTS);
+    glVertex2f(0.2, -0.30);
+    glEnd();
+
+    glColor3f(1.0, 0.0, 0.0);
+    glPointSize(6.0);
+    glBegin(GL_POINTS);
+    glVertex2f(0.0, -0.25);
+    glEnd();
+    glColor3f(1.0, 0.0, 1.0);//   wicket-keeper
+    glPointSize(7.0);
+    glBegin(GL_POINTS);
+    glVertex2f(-0.025, 0.33);
+    glEnd();
+    glColor3f(1.0, 1.0, 0.0); // bowler
+    glPointSize(7.0);
+    glBegin(GL_POINTS);
+    glVertex2f(bowlerx, bowlery);
+    glEnd();
+    glColor3f(0.4, 0.0, 0.0); //  batsmen
+    glPointSize(7.0);
+    glBegin(GL_POINTS);
+    glVertex2f(batsman1x, batsman1y);
+    glVertex2f(batsman2x, batsman2y);
+    glEnd();
+    glColor3f(0.0, 0.0, 0.0);    //stump1
+    glBegin(GL_LINES);
+    glVertex2f(0.02, 0.185);
+    glVertex2f(-0.02, 0.185);
+    glEnd();
+    glLineWidth(3.0);    //side line
+    glBegin(GL_LINES);
+    glVertex2f(0.05, 0.2);
+    glVertex2f(0.05, 0.12);
+    glEnd();
+    glBegin(GL_LINES);
+    glVertex2f(-0.05, 0.2);
+    glVertex2f(-0.05, 0.12);
+    glEnd();
+    glBegin(GL_LINES);    //creese
+    glVertex2f(-0.1, 0.12);
+    glVertex2f(0.1, 0.12);
+    glEnd();
+    glColor3f(0.0, 0.0, 0.0);    //stmp2
+    glBegin(GL_LINES);
+    glVertex2f(0.02, -0.185);
+    glVertex2f(-0.02, -0.185);
+    glEnd();
+    glColor3f(0.0, 0.0, 0.0);    //stmp2
+    glBegin(GL_LINES);
+    glVertex2f(0.05, -0.2);
+    glVertex2f(0.05, -0.12);
+    glEnd();
+    glBegin(GL_LINES);
+    glVertex2f(-0.05, -0.2);
+    glVertex2f(-0.05, -0.12);
+    glEnd();
+    glBegin(GL_LINES);    //creese
+    glVertex2f(-0.1, -0.12);
+    glVertex2f(0.1, -0.12);
+    glEnd();
+    if (isbowling) {    // Draw ball if bowling
+        glColor3f(0.0, 0.0, 0.0);
+        glPointSize(4.0);
+        glBegin(GL_POINTS);
+        glVertex2f(ballx, bally);
+        glEnd();
+    }
+    drawScoreboard();
+    glFlush();
+}
+void bowler_move() {
+    if (bowlermove) {
+        if (bowlery <= -0.15) {
+            bowlery += 0.005;
+        }
+        else {
+            isbowling = true;
+            bowlermove = false;
+        }
+    }
+}
+void ball_move_to_batsmen() {
+    if (isbowling) {
+        bally += ballspeed;
+        if (bally > 0.15) {
+            ball_hit_with_bat = true;
+
+        }
+    }
+
+}
+void state_dot() {
+    bowler_move();
+    ball_move_to_batsmen();
+    if (ball_hit_with_bat) {
+        bally = 0.15;
+        isbowling = false;
+        if (!score_incremented) { //to prevent multiple increments
+            score += 0;
+            score_incremented = true;
+        }
+        glColor3f(0.0f, 0.0f, 0.0f);
+        glRasterPos2f(-0.04f, 0.0f);
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'D');
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'O');
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'T');
+        //glutPostRedisplay();
+        glFlush();
+
+
+
+    }
+}
+void state_catch() {
+    bowler_move();
+    ball_move_to_batsmen();
+    if (ball_hit_with_bat) {
+        if (ballx <= 0.2 and bally >= -0.3)
+        {
+            ballx += ball_direc_after_hit[0];
+            bally += ball_direc_after_hit[1];
+        }
+        else
+        {
+            score = 0;
+            ballx = 0.2;
+            bally = -0.3;
+            if (disp_catch) {
+                glColor3f(0.0f, 0.0f, 0.0f);
+                glRasterPos2f(-0.08f, 0.0f);
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'C');
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'A');
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'T');
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'C');
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'H');
+            }
+            //glutPostRedisplay();
+            glFlush();
+        }
+    }
+}
+void state_six() {
+    bowler_move();
+    ball_move_to_batsmen();
+    if (ball_hit_with_bat) {
+        if (ballx <= 0.5 && bally >= -0.5)
+        {
+            ballx += 0.005;
+            bally -= 0.005;
+        }
+        else
+        {
+            isbowling = false;
+            if (!score_incremented) { // to prevent multiple increments
+                score += 6;
+                score_incremented = true;
+            }
+            glColor3f(0.0f, 0.0f, 0.0f);
+            glRasterPos2f(-0.04f, 0.0f);
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'S');
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'I');
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'X');
+            // glutPostRedisplay();
+            glFlush();
+        }
+    }
+}
+void state_four() {
+    bowler_move();
+    ball_move_to_batsmen();
+    if (ball_hit_with_bat) {
+        if (ballx >= -0.42 && bally >= -0.3)
+        {
+            ballx -= 0.005;
+            bally -= 0.005;
+        }
+        else
+        {
+            isbowling = false;
+            if (!score_incremented) { // to prevent multiple increments
+                score += 4;
+                score_incremented = true;
+            }
+            glColor3f(0.0f, 0.0f, 0.0f);
+            glRasterPos2f(-0.06f, 0.0f);
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'F');
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'O');
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'U');
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'R');
+            // glutPostRedisplay();
+            glFlush();
+        }
+    }
+}
+void state_single()
+{
+    bowler_move();
+    ball_move_to_batsmen();
+    if (ball_hit_with_bat)
+    {
+        if (ballx <= 0.5 && bally >= -0.3)
+        {
+            ballx += 0.005;
+            bally -= 0.005;
+            batsman_move = true;
+        }
+        else
+        {
+            ballx = 0.5;
+            bally = -0.3;
+        }
+        if (batsman_move)
+        {
+            // Move batsmen
+            batsman1y -= 0.01;
+            batsman2y += 0.01;
+
+            // Check if the movement is completed
+            if (batsman1y <= -0.15 && batsman2y >= 0.15)
+            {
+                batsman1y = -0.15;
+                batsman2y = 0.15;
+                batsman_move = false;
+                isbowling = false;
+            }
+        }
+        else
+        {
+            if (!score_incremented) { // to prevent multiple increments
+                score += 1;
+                score_incremented = true;
+            }
+            glColor3f(0.0f, 0.0f, 0.0f);
+            glRasterPos2f(-0.06f, 0.0f);
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'S');
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'I');
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'N');
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'G');
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'L');
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, 'E');
+            // glutPostRedisplay();
+            glFlush();
+        }
+
+    }
+
+
+
+}
+void process1(int value)
+{
+    switch (state_manager)
+    {
+    case 1:
+        state_catch();
+        break;
+    case 2:
+        state_six();
+        break;
+    case 3:
+        state_four();
+        break;
+    case 4:
+        state_dot();
+        break;
+    case 5:
+        state_single();
+        break;
+    }
+    glutPostRedisplay();
+    glutTimerFunc(16, process1, 0);
+}
+void keyboard1(unsigned char key1, int x, int y)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int>distribution(1, 5);
+    int rndm = distribution(gen);
+    if (key1 == 'z' || key1 == 'Z') {
+        restart1();
+    }
+    if (key1 == 'r' || key1 == 'R') {
+        restart();
+    }
+
+    if (key1 == '1')
+    {
+        if (rndm == 1)
+        {
+            restart();
+            bowlermove = true;
+            state_manager = 1;
+            score_incremented = false;
+        }
+        if (rndm == 2)
+        {
+            restart();
+            bowlermove = true;
+            state_manager = 2;
+            score_incremented = false;
+        }
+
+        if (rndm == 3) {
+            restart();
+            bowlermove = true;
+            state_manager = 3;
+            score_incremented = false;
+        }
+        if (rndm == 4) {
+            restart();
+            bowlermove = true;
+            state_manager = 4;
+            score_incremented = false;
+        }
+        if (rndm == 5)
+        {
+            restart();
+            bowlermove = true;
+            state_manager = 5;
+            score_incremented = false;
+
+        }
+
+    }
+}
+void reshape(int w, int h)
+{
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glViewport(0, 0, w, h);
+    if (w < h)
+        glOrtho(-1.0, 1.0, -1.0 * ((GLfloat)w / (GLfloat)h), 1.0 * ((GLfloat)w / (GLfloat)h), -1.0, 1.0);
+    else
+        glOrtho(-1.0 * (GLfloat)w / (GLfloat)h, 1.0 * (GLfloat)w / (GLfloat)h, -1.0, 1.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+}
+int main(int argc, char** argv)
+{
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(800, 800);
+    glutCreateWindow("Cricket Simulation");
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+    glutKeyboardFunc(keyboard1);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glutTimerFunc(16, process1, 0);
+    glutMainLoop();
+    return 0;
+}
